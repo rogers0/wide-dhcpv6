@@ -236,4 +236,11 @@ AC_SUBST(group)
 
 AC_CHECK_HEADERS(stdarg.h)
 
+AC_MSG_CHECKING(whether libc defines struct in6_pktinfo)
+AC_TRY_COMPILE([#include <netinet/in.h>],
+ [struct in6_pktinfo p6;],
+ [AC_MSG_RESULT(yes)
+  CFLAGS="$CFLAGS -DHAVE_IN6_PKTINFO"],
+ [AC_MSG_RESULT(no)])
+
 AC_OUTPUT(Makefile)

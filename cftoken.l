@@ -111,6 +111,7 @@ ecl		\}
 
 %s S_CNF
 %s S_IFACE
+%s S_PROFILE
 %s S_PREF
 %s S_HOST
 %s S_DUID
@@ -135,6 +136,15 @@ ecl		\}
 	yylval.str = strdup(yytext);
 	BEGIN S_CNF;
 	return (IFNAME);
+}
+
+	/* profile configuration */
+<S_CNF>profile { DECHO; BEGIN S_PROFILE; return (PROFILE); }
+<S_PROFILE>{string} {
+	DECHO;
+	yylval.str = strdup(yytext);
+	BEGIN S_CNF;
+	return (PROFILENAME);
 }
 
 	/* host configuration */
@@ -230,6 +240,7 @@ ecl		\}
 <S_CNF>prefix-interface { DECHO; BEGIN S_IFACE; return (PREFIX_INTERFACE); }
 <S_CNF>sla-id { DECHO; return (SLA_ID); }
 <S_CNF>sla-len { DECHO; return (SLA_LEN); }
+<S_CNF>ifid { DECHO; return (IFID); }
 
 	/* duration */
 <S_CNF>infinity { DECHO; return (INFINITY); }
@@ -340,10 +351,10 @@ cfdebug_print(w, t, l)
 	int l;
 {
 	if (w) {
-		dprintf(LOG_DEBUG, FNAME,
+		debug_printf(LOG_DEBUG, FNAME,
 		    "<%d>%s [%s] (%d)", yy_start, w, t, l);
 	} else {
-		dprintf(LOG_DEBUG, FNAME,
+		debug_printf(LOG_DEBUG, FNAME,
 		    "<%d>[%s] (%d)", yy_start, t, l);
 	}
 }
@@ -359,7 +370,7 @@ yyerror0(int level, char *s, va_list ap)
 	if (bp < ep)
 		bp += vsnprintf(bp, ep - bp, s, ap);
 
-	dprintf(level, FNAME, ebuf);
+	debug_printf(level, FNAME, ebuf);
 }
 
 void
@@ -397,16 +408,20 @@ cfswitch_buffer(incl)
 	FILE *fp;
 
 	if (incstackp >= MAX_INCLUDE_DEPTH) {
-		dprintf(LOG_ERR, FNAME, "cfparse: includes nested too deeply");
+		debug_printf(LOG_ERR, FNAME, "cfparse: includes nested too deeply");
 		return (-1);
 	}
 	incstack[incstackp].path = configfilename;
 	incstack[incstackp].state = YY_CURRENT_BUFFER;
 	incstack[incstackp].lineno = lineno;
 
+#ifdef __linux__
+	fp = fopen(path, "re");
+#else
 	fp = fopen(path, "r");
+#endif
 	if (fp == NULL) {
-		dprintf(LOG_ERR, FNAME, "cfparse: fopen(%s): %s",
+		debug_printf(LOG_ERR, FNAME, "cfparse: fopen(%s): %s",
 			path, strerror(errno));
 		if (errno == ENOENT)
 			return (0);
@@ -427,8 +442,12 @@ cfparse(conf)
 	char *conf;
 {
 	configfilename = conf;
+#ifdef __linux__
+	if ((yyin = fopen(configfilename, "re")) == NULL) {
+#else
 	if ((yyin = fopen(configfilename, "r")) == NULL) {
-		dprintf(LOG_ERR, FNAME, "cfparse: fopen(%s): %s",
+#endif
+		debug_printf(LOG_ERR, FNAME, "cfparse: fopen(%s): %s",
 			configfilename, strerror(errno));
 		if (errno == ENOENT)
 			return (0);
