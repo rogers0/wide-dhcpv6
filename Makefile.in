@@ -86,11 +86,11 @@ getaddrinfo.o:	$(srcdir)/missing/getaddrinfo.c
 getnameinfo.o:	$(srcdir)/missing/getnameinfo.c
 	$(CC) -c $(srcdir)/missing/$*.c
 strlcat.o:	$(srcdir)/missing/strlcat.c
-	$(CC) -c $(srcdir)/missing/$*.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(srcdir)/missing/$*.c
 strlcpy.o:	$(srcdir)/missing/strlcpy.c
-	$(CC) -c $(srcdir)/missing/$*.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(srcdir)/missing/$*.c
 arc4random.o:	$(srcdir)/missing/arc4random.c
-	$(CC) $(CFLAGS) -c $(srcdir)/missing/$*.c
+	$(CC) $(CFLAGS) $(CPPFLAGS) -c $(srcdir)/missing/$*.c
 getifaddrs.o:	$(srcdir)/missing/getifaddrs.c
 	$(CC) -c $(srcdir)/missing/$*.c
 daemon.o:	$(srcdir)/missing/daemon.c
