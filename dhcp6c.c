@@ -785,7 +785,7 @@ client6_ifctl(ifname, command)
 		 * lease.
 		 */
 		if (ifreset(ifp)) {
-			dprintf(LOG_NOTICE, FNAME, "failed to reset %s",
+			debug_printf(LOG_NOTICE, FNAME, "failed to reset %s",
 			    ifname);
 			return (-1);
 		}
